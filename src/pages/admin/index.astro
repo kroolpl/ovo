@@ -1,10 +1,10 @@
 import Layout from '../../layouts/Layout.astro';
 import { client } from '../../lib/sanity';
-import type { Article } from '../../types/sanity';
+import type { Article } from '../../types';
 
-interface ArticleWithRejection extends Article {
+type ArticleWithRejection = Article & {
   rejectionReason?: string;
-}
+};
 
 // Client-side role check will be handled by netlify.toml redirects
 const pendingArticles = await client.fetch<Article[]>(`

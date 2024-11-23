@@ -1,13 +1,14 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { client, urlFor } from '../../lib/sanity';
-import type { Article } from '../../types/sanity';
+import type { Article } from '../../types';
 
 const { tag } = Astro.params;
 
 // Fetch articles with the specific tag
 let articles: Article[] = [];
 try {
+  const params = { tag: tag || '' };
   articles = await client.fetch<Article[]>(
     `*[_type == "article" && $tag in tags] | order(publishedAt desc) {
       _id,
@@ -18,7 +19,7 @@ try {
       tags,
       body
     }`,
-    { tag: tag ?? '' }
+    params
   );
 } catch (error) {
   console.error('Error fetching articles:', error);
