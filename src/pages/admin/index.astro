@@ -26,6 +26,10 @@ const rejectedArticles = await client.fetch<Article[]>(`
   }
 `);
 
+interface ArticleWithRejection extends Article {
+  rejectionReason?: string;
+}
+
 <Layout title="Panel Administracyjny">
   <main class="container mx-auto px-4 py-12 max-w-6xl">
     <h1 class="text-4xl font-display font-bold text-gray-900 dark:text-white mb-8">Panel Administracyjny</h1>
@@ -37,7 +41,7 @@ const rejectedArticles = await client.fetch<Article[]>(`
           Oczekujące opowiadania ({pendingArticles.length})
         </h2>
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg divide-y dark:divide-gray-700">
-          {pendingArticles.map((article) => (
+          {pendingArticles.map((article: Article) => (
             <div class="p-6 flex items-center justify-between">
               <div>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
@@ -81,7 +85,7 @@ const rejectedArticles = await client.fetch<Article[]>(`
           Odrzucone opowiadania ({rejectedArticles.length})
         </h2>
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg divide-y dark:divide-gray-700">
-          {rejectedArticles.map((article) => (
+          {rejectedArticles.map((article: ArticleWithRejection) => (
             <div class="p-6">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
                 {article.title}
