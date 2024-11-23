@@ -1,23 +1,52 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { client, urlFor } from '../lib/sanity';
-import type { Article } from '../types';
+import Layout from 'opoviadania-frontend/src/layouts/Layout.astro';
+import { client } from 'opoviadania-frontend/lib/sanity';
+import type { Article } from 'opoviadania-frontend//types';
 
-let articles: Article[] = [];
+interface ArticleWithRejection extends Article {
+  rejectionReason: string;
+}
+
+let pendingArticles: Article[] = [];
+let rejectedArticles: ArticleWithRejection[] = [];
+
 try {
-  articles = await client.fetch<Article[]>(`
-    *[_type == "article" && status == "approved"] | order(publishedAt desc) {
+  // Fetch pending articles with explicit type casting
+  const pendingResult = await client.fetch<Article[]>(`
+    *[_type == "article" && status == "pending"] | order(publishedAt desc) {
       _id,
       title,
       author,
-      mainImage,
       publishedAt,
       tags,
-      body
+      status
     }
   `);
+  pendingArticles = pendingResult || [];
+
+  // Fetch rejected articles with explicit type casting
+  const rejectedResult = await client.fetch<ArticleWithRejection[]>(`
+    *[_type == "article" && status == "rejected"] | order(publishedAt desc) {
+      _id,
+      title,
+      author,
+      publishedAt,
+      tags,
+      status,
+      rejectionReason
+    }
+  `);
+  rejectedArticles = rejectedResult || [];
 } catch (error) {
   console.error('Error fetching articles:', error);
+}
+
+interface ArticleData {
+  _id: string;
+  title: string;
+  author: string;
+  publishedAt: string;
+  tags?: string[];
 }
 ---
 
