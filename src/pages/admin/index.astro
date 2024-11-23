@@ -2,16 +2,18 @@ import Layout from '../../layouts/Layout.astro';
 import { client } from '../../lib/sanity';
 import type { Article } from '../../types';
 
+// Define the interface for rejected articles
 interface ArticleWithRejection extends Article {
-  rejectionReason?: string;
+  rejectionReason: string;
 }
 
+// Initialize variables with proper types
 let pendingArticles: Article[] = [];
 let rejectedArticles: ArticleWithRejection[] = [];
 
 try {
-  // Fetch pending articles
-  pendingArticles = await client.fetch<Article[]>(`
+  // Fetch pending articles with explicit type casting
+  const pendingResult = await client.fetch<Article[]>(`
     *[_type == "article" && status == "pending"] | order(publishedAt desc) {
       _id,
       title,
@@ -21,9 +23,10 @@ try {
       status
     }
   `);
+  pendingArticles = pendingResult || [];
 
-  // Fetch rejected articles
-  rejectedArticles = await client.fetch<ArticleWithRejection[]>(`
+  // Fetch rejected articles with explicit type casting
+  const rejectedResult = await client.fetch<ArticleWithRejection[]>(`
     *[_type == "article" && status == "rejected"] | order(publishedAt desc) {
       _id,
       title,
@@ -34,8 +37,18 @@ try {
       rejectionReason
     }
   `);
+  rejectedArticles = rejectedResult || [];
 } catch (error) {
   console.error('Error fetching articles:', error);
+}
+
+// Type-safe interface for article data
+interface ArticleData {
+  _id: string;
+  title: string;
+  author: string;
+  publishedAt: string;
+  tags?: string[];
 }
 
 <Layout title="Panel Administracyjny">
@@ -49,7 +62,7 @@ try {
           Oczekujące opowiadania ({pendingArticles.length})
         </h2>
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg divide-y dark:divide-gray-700">
-          {pendingArticles.map((article) => (
+          {pendingArticles.map((article: ArticleData) => (
             <div class="p-6 flex items-center justify-between">
               <div>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
@@ -60,7 +73,7 @@ try {
                 </p>
                 {article.tags && (
                   <div class="flex gap-2 mt-2">
-                    {article.tags.map((tag) => (
+                    {article.tags.map((tag: string) => (
                       <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs rounded-full">
                         {tag}
                       </span>
@@ -93,7 +106,7 @@ try {
           Odrzucone opowiadania ({rejectedArticles.length})
         </h2>
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg divide-y dark:divide-gray-700">
-          {rejectedArticles.map((article) => (
+          {rejectedArticles.map((article: ArticleWithRejection) => (
             <div class="p-6">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
                 {article.title}
@@ -101,11 +114,9 @@ try {
               <p class="text-sm text-gray-500 dark:text-gray-400">
                 Autor: {article.author} • Data: {new Date(article.publishedAt).toLocaleDateString('pl-PL')}
               </p>
-              {article.rejectionReason && (
-                <p class="mt-2 text-red-600 dark:text-red-400">
-                  Powód odrzucenia: {article.rejectionReason}
-                </p>
-              )}
+              <p class="mt-2 text-red-600 dark:text-red-400">
+                Powód odrzucenia: {article.rejectionReason}
+              </p>
             </div>
           ))}
         </div>
