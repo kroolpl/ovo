@@ -2,33 +2,41 @@ import Layout from '../../layouts/Layout.astro';
 import { client } from '../../lib/sanity';
 import type { Article } from '../../types';
 
-type ArticleWithRejection = Article & {
+interface ArticleWithRejection extends Article {
   rejectionReason?: string;
-};
+}
 
-// Client-side role check will be handled by netlify.toml redirects
-const pendingArticles = await client.fetch<Article[]>(`
-  *[_type == "article" && status == "pending"] | order(publishedAt desc) {
-    _id,
-    title,
-    author,
-    publishedAt,
-    tags,
-    status
-  }
-`);
+let pendingArticles: Article[] = [];
+let rejectedArticles: ArticleWithRejection[] = [];
 
-const rejectedArticles = await client.fetch<ArticleWithRejection[]>(`
-  *[_type == "article" && status == "rejected"] | order(publishedAt desc) {
-    _id,
-    title,
-    author,
-    publishedAt,
-    tags,
-    status,
-    rejectionReason
-  }
-`);
+try {
+  // Fetch pending articles
+  pendingArticles = await client.fetch<Article[]>(`
+    *[_type == "article" && status == "pending"] | order(publishedAt desc) {
+      _id,
+      title,
+      author,
+      publishedAt,
+      tags,
+      status
+    }
+  `);
+
+  // Fetch rejected articles
+  rejectedArticles = await client.fetch<ArticleWithRejection[]>(`
+    *[_type == "article" && status == "rejected"] | order(publishedAt desc) {
+      _id,
+      title,
+      author,
+      publishedAt,
+      tags,
+      status,
+      rejectionReason
+    }
+  `);
+} catch (error) {
+  console.error('Error fetching articles:', error);
+}
 
 <Layout title="Panel Administracyjny">
   <main class="container mx-auto px-4 py-12 max-w-6xl">
@@ -41,7 +49,7 @@ const rejectedArticles = await client.fetch<ArticleWithRejection[]>(`
           Oczekujące opowiadania ({pendingArticles.length})
         </h2>
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg divide-y dark:divide-gray-700">
-          {pendingArticles.map((article: Article) => (
+          {pendingArticles.map((article) => (
             <div class="p-6 flex items-center justify-between">
               <div>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
@@ -52,7 +60,7 @@ const rejectedArticles = await client.fetch<ArticleWithRejection[]>(`
                 </p>
                 {article.tags && (
                   <div class="flex gap-2 mt-2">
-                    {article.tags.map((tag: string) => (
+                    {article.tags.map((tag) => (
                       <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs rounded-full">
                         {tag}
                       </span>
@@ -85,7 +93,7 @@ const rejectedArticles = await client.fetch<ArticleWithRejection[]>(`
           Odrzucone opowiadania ({rejectedArticles.length})
         </h2>
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg divide-y dark:divide-gray-700">
-          {rejectedArticles.map((article: ArticleWithRejection) => (
+          {rejectedArticles.map((article) => (
             <div class="p-6">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
                 {article.title}
