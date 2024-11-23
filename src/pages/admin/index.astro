@@ -1,0 +1,141 @@
+import Layout from '../../layouts/Layout.astro';
+import { client } from '../../lib/sanity';
+import type { Article } from '../../types/sanity';
+
+// Client-side role check will be handled by netlify.toml redirects
+const pendingArticles = await client.fetch<Article[]>(`
+  *[_type == "article" && status == "pending"] | order(publishedAt desc) {
+    _id,
+    title,
+    author,
+    publishedAt,
+    tags,
+    status
+  }
+`);
+
+const rejectedArticles = await client.fetch<Article[]>(`
+  *[_type == "article" && status == "rejected"] | order(publishedAt desc) {
+    _id,
+    title,
+    author,
+    publishedAt,
+    tags,
+    status,
+    rejectionReason
+  }
+`);
+
+<Layout title="Panel Administracyjny">
+  <main class="container mx-auto px-4 py-12 max-w-6xl">
+    <h1 class="text-4xl font-display font-bold text-gray-900 dark:text-white mb-8">Panel Administracyjny</h1>
+
+    <div class="space-y-8">
+      <!-- Pending Articles -->
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          Oczekujące opowiadania ({pendingArticles.length})
+        </h2>
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg divide-y dark:divide-gray-700">
+          {pendingArticles.map((article) => (
+            <div class="p-6 flex items-center justify-between">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                  {article.title}
+                </h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  Autor: {article.author} • Data: {new Date(article.publishedAt).toLocaleDateString('pl-PL')}
+                </p>
+                {article.tags && (
+                  <div class="flex gap-2 mt-2">
+                    {article.tags.map(tag => (
+                      <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs rounded-full">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div class="flex gap-3">
+                <button
+                  data-article-id={article._id}
+                  class="approve-btn px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition"
+                >
+                  Zatwierdź
+                </button>
+                <button
+                  data-article-id={article._id}
+                  class="reject-btn px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
+                >
+                  Odrzuć
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <!-- Rejected Articles -->
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          Odrzucone opowiadania ({rejectedArticles.length})
+        </h2>
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg divide-y dark:divide-gray-700">
+          {rejectedArticles.map((article) => (
+            <div class="p-6">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                {article.title}
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                Autor: {article.author} • Data: {new Date(article.publishedAt).toLocaleDateString('pl-PL')}
+              </p>
+              {article.rejectionReason && (
+                <p class="mt-2 text-red-600 dark:text-red-400">
+                  Powód odrzucenia: {article.rejectionReason}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  // Check for admin role on the client side
+  if (window.netlifyIdentity) {
+    window.netlifyIdentity.on("init", user => {
+      if (!user || !user.app_metadata?.roles?.includes('admin')) {
+        window.location.href = '/';
+      }
+    });
+  }
+
+  // Handle approve/reject actions
+  document.addEventListener('click', async (e) => {
+    const target = e.target as HTMLElement;
+    if (target.matches('.approve-btn, .reject-btn')) {
+      const articleId = target.dataset.articleId;
+      const isApprove = target.classList.contains('approve-btn');
+      
+      if (isApprove) {
+        await fetch('/api/approve-article', {
+          method: 'POST',
+          body: JSON.stringify({ articleId }),
+        });
+      } else {
+        const reason = prompt('Podaj powód odrzucenia:');
+        if (reason) {
+          await fetch('/api/reject-article', {
+            method: 'POST',
+            body: JSON.stringify({ articleId, reason }),
+          });
+        }
+      }
+      
+      // Refresh the page to show updated status
+      window.location.reload();
+    }
+  });
+</script> 

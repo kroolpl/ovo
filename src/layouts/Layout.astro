@@ -1,0 +1,77 @@
+---
+import '../styles/base.css';
+import ThemeToggle from '../components/ThemeToggle.astro';
+
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Platforma do dzielenia się opowiadaniami" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script is:inline>
+      // Theme handling
+      if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    </script>
+  </head>
+  <body class="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200">
+    <nav class="bg-white/80 dark:bg-gray-800/50 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center space-x-8">
+            <a href="/" class="text-xl font-display text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition">
+              Opowiadania
+            </a>
+            <div class="flex items-center space-x-4">
+              <a href="/" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition font-medium">
+                Strona główna
+              </a>
+              <a href="/submit" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition font-medium">
+                Dodaj opowiadanie
+              </a>
+            </div>
+          </div>
+          <div class="flex items-center space-x-4">
+            <ThemeToggle />
+            <div data-netlify-identity-button class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer">
+              Zaloguj się
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <slot />
+
+    <script>
+      // Handle login and role checking
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.on("init", user => {
+          if (!user) {
+            window.netlifyIdentity.on("login", () => {
+              window.location.reload();
+            });
+          }
+        });
+
+        window.netlifyIdentity.on("logout", () => {
+          window.location.reload();
+        });
+      }
+    </script>
+  </body>
+</html>

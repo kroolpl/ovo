@@ -1,0 +1,19 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Zaloguj się">
+  <main class="container mx-auto px-4 py-12 max-w-md">
+    <div class="bg-white dark:bg-gray-800/50 backdrop-blur-lg rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700/50">
+      <h1 class="text-3xl font-display font-bold text-gray-900 dark:text-white mb-6 text-center">
+        Zaloguj się
+      </h1>
+      
+      <div class="text-center">
+        <div data-netlify-identity-button class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          Zaloguj się
+        </div>
+      </div>
+    </div>
+  </main>
+</Layout> 
