@@ -103,9 +103,15 @@ const rejectedArticles = await client.fetch<Article[]>(`
 </Layout>
 
 <script>
+  interface User {
+    app_metadata?: {
+      roles?: string[];
+    };
+  }
+
   // Check for admin role on the client side
   if (window.netlifyIdentity) {
-    window.netlifyIdentity.on("init", user => {
+    window.netlifyIdentity.on("init", (user: User | null) => {
       if (!user || !user.app_metadata?.roles?.includes('admin')) {
         window.location.href = '/';
       }

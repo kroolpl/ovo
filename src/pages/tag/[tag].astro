@@ -8,8 +8,8 @@ const { tag } = Astro.params;
 // Fetch articles with the specific tag
 let articles: Article[] = [];
 try {
-  articles = await client.fetch<Article[]>(`
-    *[_type == "article" && $tag in tags] | order(publishedAt desc) {
+  articles = await client.fetch<Article[]>(
+    `*[_type == "article" && $tag in tags] | order(publishedAt desc) {
       _id,
       title,
       author,
@@ -17,8 +17,9 @@ try {
       publishedAt,
       tags,
       body
-    }
-  `, { tag });
+    }`,
+    { tag: tag || '' }
+  );
 } catch (error) {
   console.error('Error fetching articles:', error);
 }

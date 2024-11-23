@@ -58,9 +58,15 @@ const { title } = Astro.props;
     <slot />
 
     <script>
+      interface User {
+        app_metadata?: {
+          roles?: string[];
+        };
+      }
+
       // Handle login and role checking
       if (window.netlifyIdentity) {
-        window.netlifyIdentity.on("init", user => {
+        window.netlifyIdentity.on("init", (user: User | null) => {
           if (!user) {
             window.netlifyIdentity.on("login", () => {
               window.location.reload();
