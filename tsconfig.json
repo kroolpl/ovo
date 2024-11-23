@@ -5,8 +5,9 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "types": ["@astrojs/image/client"],
     "jsx": "preserve",
-    "jsxImportSource": "astro"
+    "jsxImportSource": "astro",
+    "types": ["node"],
+    "skipLibCheck": true
   }
 }
