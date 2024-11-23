@@ -1,13 +1,16 @@
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
+import node from '@astrojs/node';
 
 export default defineConfig({
+  integrations: [tailwind()],
   output: 'server',
-  integrations: [
-    tailwind(),
-  ],
-  server: {
-    port: 3000,
-    host: true
-  },
+  adapter: node({
+    mode: 'standalone'
+  }),
+  vite: {
+    ssr: {
+      noExternal: ['@sanity/image-url']
+    }
+  }
 });
