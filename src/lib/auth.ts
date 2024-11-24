@@ -19,10 +19,6 @@ interface SessionUser {
   image: string | null;
 }
 
-interface Session {
-  user?: SessionUser;
-}
-
 export const authConfig: AuthConfig = {
   providers: [
     Google({
@@ -68,11 +64,11 @@ export const authConfig: AuthConfig = {
           { email: session.user.email }
         );
         
-        // Create extended user with role
+        // Create extended user with role, ensuring null for undefined values
         const extendedUser: ExtendedUser = {
           email: session.user.email,
-          name: session.user.name,
-          image: session.user.image,
+          name: session.user.name ?? null,
+          image: session.user.image ?? null,
           role: userData?.role || 'user'
         };
 
