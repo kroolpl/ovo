@@ -43,19 +43,12 @@ try {
         {articles.map((article) => (
           <div class="group bg-white dark:bg-gray-800/50 backdrop-blur rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-200 dark:border-gray-700/50">
             <div class="relative">
-              {article.mainImage ? (
+              {article.mainImage && (
                 <img
-                  src={urlFor(article.mainImage)
-                    .width(600)
-                    .height(400)
-                    .url()}
+                  src={urlFor(article.mainImage).width(600).height(400).url()}
                   alt={article.title}
                   class="w-full h-56 object-cover brightness-90 group-hover:brightness-100 transition-all duration-300"
                 />
-              ) : (
-                <div class="w-full h-56 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center">
-                  <span class="text-gray-500 dark:text-gray-400 font-medium">Brak zdjęcia</span>
-                </div>
               )}
               <div class="absolute top-0 right-0 bg-blue-500/90 backdrop-blur-sm text-white text-xs font-medium px-3 py-1 m-4 rounded-full">
                 {new Date(article.publishedAt).toLocaleDateString('pl-PL', {
