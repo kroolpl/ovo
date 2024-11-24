@@ -48,9 +48,12 @@ const { title } = Astro.props;
           </div>
           <div class="flex items-center space-x-4">
             <ThemeToggle />
-            <div data-netlify-identity-button class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer">
+            <button 
+              onclick="netlifyIdentity.open();"
+              class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
+            >
               Zaloguj się
-            </div>
+            </button>
           </div>
         </div>
       </div>
@@ -58,24 +61,25 @@ const { title } = Astro.props;
     <slot />
 
     <script>
-      interface User {
-        app_metadata?: {
-          roles?: string[];
-        };
-      }
-
-      // Handle login and role checking
+      // Initialize Netlify Identity
       if (window.netlifyIdentity) {
-        window.netlifyIdentity.on("init", (user: User | null) => {
+        window.netlifyIdentity.on('init', user => {
           if (!user) {
-            window.netlifyIdentity.on("login", () => {
+            window.netlifyIdentity.on('login', () => {
               window.location.reload();
             });
           }
         });
 
-        window.netlifyIdentity.on("logout", () => {
+        window.netlifyIdentity.on('logout', () => {
           window.location.reload();
+        });
+
+        // Handle login status changes
+        window.netlifyIdentity.on('login', user => {
+          if (user.app_metadata?.roles?.includes('admin')) {
+            window.location.href = '/admin';
+          }
         });
       }
     </script>
