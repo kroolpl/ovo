@@ -2,21 +2,25 @@
 import '../styles/base.css';
 import ThemeToggle from '../components/ThemeToggle.astro';
 import { getSession } from 'auth-astro/server';
-import type { Session } from '@auth/core/types';
 
 interface Props {
 	title: string;
 }
 
-interface User {
+interface ExtendedUser {
 	name?: string | null;
 	email?: string | null;
 	image?: string | null;
 	role?: string;
 }
 
+interface ExtendedSession {
+	user?: ExtendedUser;
+	expires: string;
+}
+
 const { title } = Astro.props;
-const session = await getSession(Astro.request) as Session | null;
+const session = await getSession(Astro.request) as ExtendedSession | null;
 
 // Define types for window augmentation
 declare global {

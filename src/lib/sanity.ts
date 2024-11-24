@@ -18,7 +18,10 @@ export const client = createClient({
   token: import.meta.env.SANITY_WRITE_TOKEN
 })
 
-const builder = imageUrlBuilder(client)
+const builder = imageUrlBuilder({
+  projectId: import.meta.env.PUBLIC_SANITY_PROJECT_ID,
+  dataset: import.meta.env.PUBLIC_SANITY_DATASET,
+})
 
 export function urlFor(source: SanityImageSource) {
   return builder.image(source)
