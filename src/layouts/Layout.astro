@@ -1,20 +1,31 @@
 ---
 import '../styles/base.css';
 import ThemeToggle from '../components/ThemeToggle.astro';
-import getSession from 'auth-astro';
+import { getSession } from 'auth-astro/server';
 
 interface Props {
 	title: string;
 }
 
+interface User {
+	name?: string | null;
+	email?: string | null;
+	image?: string | null;
+	role?: string;
+}
+
+interface Session {
+	user?: User;
+}
+
 const { title } = Astro.props;
-const session = await getSession();
+const session = await getSession() as Session | null;
 
 // Define types for window augmentation
 declare global {
 	interface Window {
-		signIn: any;
-		signOut: any;
+		signIn: (provider?: string) => Promise<void>;
+		signOut: () => Promise<void>;
 	}
 }
 ---
@@ -74,7 +85,7 @@ declare global {
                   )}
                 </div>
                 <button 
-                  onclick="signOut()"
+                  onclick="window.signOut()"
                   class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
                 >
                   Wyloguj się
@@ -82,7 +93,7 @@ declare global {
               </div>
             ) : (
               <button 
-                onclick="signIn('google')"
+                onclick="window.signIn('google')"
                 class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
               >
                 Zaloguj się
@@ -95,12 +106,16 @@ declare global {
     <slot />
 
     <script>
-      // Import auth functions
-      const auth = await import('auth-astro/client');
+      import { signIn, signOut } from 'auth-astro/client';
       
-      // Make auth functions available globally
-      window.signIn = (...args) => auth.signIn(...args);
-      window.signOut = () => auth.signOut();
+      // Make auth functions available globally with proper types
+      window.signIn = async (provider?: string) => {
+        await signIn(provider);
+      };
+      
+      window.signOut = async () => {
+        await signOut();
+      };
     </script>
   </body>
 </html>

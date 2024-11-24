@@ -8,9 +8,19 @@ interface UserData {
 
 interface ExtendedUser {
   email: string;
-  name?: string;
-  image?: string;
+  name: string | null;
+  image: string | null;
   role?: string;
+}
+
+interface SessionUser {
+  email: string;
+  name: string | null;
+  image: string | null;
+}
+
+interface Session {
+  user?: SessionUser;
 }
 
 export const authConfig: AuthConfig = {
@@ -36,8 +46,8 @@ export const authConfig: AuthConfig = {
           await client.create({
             _type: 'user',
             email: user.email,
-            name: user.name,
-            image: user.image,
+            name: user.name || null,
+            image: user.image || null,
             role: 'user',
             provider: account?.provider,
             createdAt: new Date().toISOString(),
@@ -60,7 +70,9 @@ export const authConfig: AuthConfig = {
         
         // Create extended user with role
         const extendedUser: ExtendedUser = {
-          ...session.user,
+          email: session.user.email,
+          name: session.user.name,
+          image: session.user.image,
           role: userData?.role || 'user'
         };
 
