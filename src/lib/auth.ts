@@ -1,6 +1,11 @@
 import Google from '@auth/core/providers/google';
-import type { AuthConfig } from '@auth/core/types';
+import type { AuthConfig, Session } from '@auth/core/types';
 import { client } from './sanity';
+
+interface UserData {
+  role?: string;
+  // Add other user data fields as needed
+}
 
 export const authConfig: AuthConfig = {
   providers: [
@@ -15,7 +20,7 @@ export const authConfig: AuthConfig = {
 
       try {
         // Check if user exists in Sanity
-        const existingUser = await client.fetch(
+        const existingUser = await client.fetch<UserData>(
           `*[_type == "user" && email == $email][0]`,
           { email: user.email }
         );
@@ -42,13 +47,16 @@ export const authConfig: AuthConfig = {
     async session({ session }) {
       if (session?.user?.email) {
         // Fetch user data from Sanity
-        const userData = await client.fetch(
+        const userData = await client.fetch<UserData>(
           `*[_type == "user" && email == $email][0]`,
           { email: session.user.email }
         );
         
         // Add role to session
-        session.user.role = userData?.role || 'user';
+        session.user = {
+          ...session.user,
+          role: userData?.role || 'user'
+        };
       }
       return session;
     },
