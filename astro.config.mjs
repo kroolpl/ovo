@@ -12,7 +12,16 @@ export default defineConfig({
   adapter: netlify(),
   vite: {
     ssr: {
-      noExternal: ['@sanity/image-url']
+      noExternal: ['@sanity/image-url', '@sanity/client']
+    },
+    build: {
+      commonjsOptions: {
+        include: [/@sanity\/image-url/, /@sanity\/client/, /node_modules/],
+        transformMixedEsModules: true
+      }
+    },
+    optimizeDeps: {
+      include: ['@sanity/image-url', '@sanity/client']
     }
   }
 });
