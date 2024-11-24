@@ -1,10 +1,16 @@
 import Google from '@auth/core/providers/google';
-import type { AuthConfig, Session } from '@auth/core/types';
+import type { AuthConfig } from '@auth/core/types';
 import { client } from './sanity';
 
 interface UserData {
   role?: string;
-  // Add other user data fields as needed
+}
+
+interface ExtendedUser {
+  email: string;
+  name?: string;
+  image?: string;
+  role?: string;
 }
 
 export const authConfig: AuthConfig = {
@@ -52,10 +58,15 @@ export const authConfig: AuthConfig = {
           { email: session.user.email }
         );
         
-        // Add role to session
-        session.user = {
+        // Create extended user with role
+        const extendedUser: ExtendedUser = {
           ...session.user,
           role: userData?.role || 'user'
+        };
+
+        return {
+          ...session,
+          user: extendedUser
         };
       }
       return session;

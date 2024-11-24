@@ -1,7 +1,7 @@
 ---
 import '../styles/base.css';
 import ThemeToggle from '../components/ThemeToggle.astro';
-import { getSession } from 'auth-astro';
+import getSession from 'auth-astro';
 
 interface Props {
 	title: string;
@@ -13,8 +13,8 @@ const session = await getSession();
 // Define types for window augmentation
 declare global {
 	interface Window {
-		signIn: (provider?: string) => Promise<void>;
-		signOut: () => Promise<void>;
+		signIn: any;
+		signOut: any;
 	}
 }
 ---
@@ -96,11 +96,11 @@ declare global {
 
     <script>
       // Import auth functions
-      const { signIn, signOut } = await import('auth-astro/client');
+      const auth = await import('auth-astro/client');
       
       // Make auth functions available globally
-      window.signIn = signIn;
-      window.signOut = signOut;
+      window.signIn = (...args) => auth.signIn(...args);
+      window.signOut = () => auth.signOut();
     </script>
   </body>
 </html>
