@@ -1,12 +1,14 @@
 ---
 import '../styles/base.css';
 import ThemeToggle from '../components/ThemeToggle.astro';
+import { getSession } from 'auth-astro/server';
 
 interface Props {
 	title: string;
 }
 
 const { title } = Astro.props;
+const session = await getSession(Astro.request);
 ---
 
 <!doctype html>
@@ -19,9 +21,7 @@ const { title } = Astro.props;
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
     <script is:inline>
-      // Theme handling
       if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.documentElement.classList.add('dark');
       } else {
@@ -48,12 +48,38 @@ const { title } = Astro.props;
           </div>
           <div class="flex items-center space-x-4">
             <ThemeToggle />
-            <button 
-              onclick="netlifyIdentity.open();"
-              class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
-            >
-              Zaloguj się
-            </button>
+            {session ? (
+              <div class="flex items-center gap-4">
+                {session.user?.image && (
+                  <img 
+                    src={session.user.image} 
+                    alt={session.user.name || ''} 
+                    class="w-8 h-8 rounded-full"
+                  />
+                )}
+                <div class="text-sm">
+                  <p class="text-gray-700 dark:text-gray-300">{session.user?.name}</p>
+                  {session.user?.role === 'admin' && (
+                    <a href="/admin" class="text-blue-600 dark:text-blue-400 text-xs">
+                      Panel admina
+                    </a>
+                  )}
+                </div>
+                <button 
+                  id="signout"
+                  class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
+                >
+                  Wyloguj się
+                </button>
+              </div>
+            ) : (
+              <button 
+                id="signin"
+                class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
+              >
+                Zaloguj się
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -61,27 +87,10 @@ const { title } = Astro.props;
     <slot />
 
     <script>
-      // Initialize Netlify Identity
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on('init', user => {
-          if (!user) {
-            window.netlifyIdentity.on('login', () => {
-              window.location.reload();
-            });
-          }
-        });
-
-        window.netlifyIdentity.on('logout', () => {
-          window.location.reload();
-        });
-
-        // Handle login status changes
-        window.netlifyIdentity.on('login', user => {
-          if (user.app_metadata?.roles?.includes('admin')) {
-            window.location.href = '/admin';
-          }
-        });
-      }
+      const { signIn, signOut } = await import("auth-astro/client");
+      
+      document.querySelector("#signin")?.addEventListener("click", () => signIn("google"));
+      document.querySelector("#signout")?.addEventListener("click", () => signOut());
     </script>
   </body>
 </html>
